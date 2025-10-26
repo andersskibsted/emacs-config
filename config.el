@@ -8,6 +8,13 @@
 (defvar default-font "DejaVu Sans Mono")
 (defvar default-font-size 14)
 
+(defun open-config-file ()
+  "Åbn config.org"
+  (interactive)
+  (find-file "~/.emacs.d/config.org"))
+
+(global-set-key (kbd "C-c i") 'open-config-file)
+
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("elpa" . "https://elpa.gnu.org/packages/") t)
@@ -96,6 +103,7 @@
 
 (use-package meow
     :ensure t
+    :defer t
     :config
     (defun meow-setup ()
       (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
@@ -182,7 +190,8 @@
        '("<escape>" . ignore)))
 
     (meow-setup)
-    (meow-global-mode 0))  ;; Start disabled
+    (meow-global-mode 0)
+    :bind ("C-c t m" . toggle-modal-mode))  ;; Start disabled
 
 ;; Toggle function
 (defvar modal-mode 'evil
@@ -214,20 +223,63 @@
 ;; Bind toggle
 (global-set-key (kbd "C-c t m") 'toggle-modal-mode)
 
-(require 'company)
-(global-company-mode 1)
+(use-package company
+        :ensure t
+        :hook ((prog-mode . company-mode)
+	       (org-mode . company-mode)
+	       (text-mode . company-mode)))
+      ;;(global-company-mode 1)
 
-(require 'company-org-block)
-(setq company-org-block-edit-style 'auto) ;; Justér efter behov
+      (use-package company-org-block
+        :ensure t
+        :init
+        (setq company-org-block-edit-style 'auto)) ;; Justér efter behov
+        
+      ;;(setq company-org-block-edit-style 'auto) ;; Justér efter behov
 
-(add-hook 'org-mode-hook
-          (lambda ()
-            (add-to-list (make-local-variable 'company-backends)
-                         'company-org-block)))
+      (add-hook 'org-mode-hook
+                (lambda ()
+                  (add-to-list (make-local-variable 'company-backends)
+                               'company-org-block)))
 
 
-(require 'corfu)
-(global-corfu-mode -1)
+      ;;(use-package corfu
+;;	:ensure t)
+      ;;(global-corfu-mode -1)
+
+(use-package embark
+  :ensure t
+  :defer t
+  :bind (("C-." . embark-act)
+         ("C-;" . embark-dwim)
+         ("C-h B" . embark-bindings)
+         :map minibuffer-local-map
+         ("C-." . embark-act)
+         ("C-c C-e" . embark-export))
+  
+  :init
+  ;; Vis hjælp for prefixes med embark
+  (setq prefix-help-command #'embark-prefix-help-command)
+  
+  :config
+  ;; Skjul standard modeline i embark
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :ensure t
+  :after (embark consult)
+  :demand t
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+;; Turn on line numbers in buffer
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 (use-package yasnippet
  :ensure t
@@ -244,24 +296,44 @@
   ("C-c y n" . yas-new-snippet)
   ("C-c y v" . yas-visit-snippet-file))
 
-(require 'which-key)
-(which-key-mode)
-
-(require 'consult)
-(global-set-key (kbd "C-x e") #'consult-buffer)
-
-(require 'vertico)
-(vertico-mode 1)
-(use-package orderless
+(use-package which-key
   :ensure t
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-defaults nil)
-  (completion-category-overrides '((file (styles basic partial-completion)))))
+  :defer 3
+  :diminish which-key-mode
+  :config
+  (which-key-mode))
 
+(use-package vertico
+  :ensure t
+  :demand t
+  :bind (:map vertico-map
+	      ;; Navigation
+	      ("C-j" . vertico-next)
+	      ("C-k" . vertico-previous)
+              ("C-d" . vertico-scroll-down)
+              ("C-u" . vertico-scroll-up)
+              ;; Directory navigation (vertico-directory)
+              ("C-h" . vertico-directory-delete-char)
+              ("C-l" . vertico-directory-enter)
+              ("M-h" . vertico-directory-delete-word))
+  :config
+  (vertico-mode 1))
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
-(require 'marginalia)
-(marginalia-mode)
+(use-package orderless
+   :ensure t
+   :custom
+   (completion-styles '(orderless basic))
+   (completion-category-defaults nil)
+   (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package marginalia
+  :ensure t
+  :config
+  (marginalia-mode))
 
 (use-package doom-modeline
 	      :ensure t
@@ -270,73 +342,92 @@
 	      :custom ((doom-modeline-height 15)))
 
 (defun reload-init-file ()
-    (interactive)
-    (load-file user-init-file))
+      (interactive)
+      (load-file user-init-file))
 
-  (defun open-init-file ()
-    "Åbn din init.el hurtigt."
-    (interactive)
-    (find-file user-init-file))
+    (defun open-init-file ()
+      "Åbn din init.el hurtigt."
+      (interactive)
+      (find-file user-init-file))
 
-  (defun open-config-file ()
-    "Åbn config.org"
-    (interactive)
-    (find-file "~/.emacs.d/config.org"))
 
-  (defun comic-sans ()
-    (interactive)
-    (set-face-attribute 'default nil
-  		      :font "Comic Sans MS"))
+    (defun comic-sans ()
+      (interactive)
+      (set-face-attribute 'default nil
+    		      :font "Comic Sans MS"))
 
-  (defun enable-corfu ()
-    (interactive)
-    (global-corfu-mode 1)
-    (company-mode -1)
-    (message "Corfu enabled"))
+    (defun enable-corfu ()
+      (interactive)
+      (global-corfu-mode 1)
+      (company-mode -1)
+      (message "Corfu enabled"))
 
-  (defun enable-company ()
-    (interactive)
-    (global-corfu-mode -1)
-    (company-mode 1)
-    (message "Company enabled"))
+    (defun enable-company ()
+      (interactive)
+      (global-corfu-mode -1)
+      (company-mode 1)
+      (message "Company enabled"))
 
-  (defun show-load-path ()
-  "Vis load-path i en midlertidig buffer."
+    (defun show-load-path ()
+    "Vis load-path i en midlertidig buffer."
+    (interactive)
+    (with-output-to-temp-buffer "*Load Path*"
+      (princ (mapconcat #'identity load-path "\n"))))
+
+  (global-set-key (kbd "C-c l") 'show-load-path)
+
+;; Den er ret langsom, men kan evt. være en start.
+  
+  (defun show-all-registers-in-buffer ()
+  "Vis alle Emacs registra i en ny buffer."
   (interactive)
-  (with-output-to-temp-buffer "*Load Path*"
-    (princ (mapconcat #'identity load-path "\n"))))
-
-(global-set-key (kbd "C-c l") 'show-load-path)
+  (let ((buf (get-buffer-create "*Registers*")))
+    (with-current-buffer buf
+      (read-only-mode -1)
+      (erase-buffer)
+      (insert "Emacs Registers:\n\n")
+      ;; Gå gennem alle mulige registertegn (ASCII 32-126)
+      (dolist (reg (mapcar #'char-to-string (number-sequence 32 126)))
+        (let ((content (get-register (string-to-char reg))))
+          (when content
+            (insert (format "Register %s:\n" reg))
+            ;; Hvis content er en string indsættes den direkte
+            (if (stringp content)
+                (insert (concat content "\n\n"))
+              ;; Ellers forsøges at konvertere til string (eksempelvis point position)
+              (insert (format "%S\n\n" content))))))
+      (read-only-mode 1)
+      (goto-char (point-min)))
+    (pop-to-buffer buf)))
 
 (defun +evil/window-move-left ()
   "Move window to the left or create new window if none exists."
   (interactive)
   (progn
     (evil-window-vsplit)
-    (evil-window-left)))
+    (evil-window-left 1)))
 
 (defun +evil/window-move-right ()
   "Move window to the right or create new window if none exists."
   (interactive)
   (progn
     (evil-window-vsplit)
-    (evil-window-right)))
+    (evil-window-right 1)))
 
 (defun +evil/window-move-up ()
   "Move window up or create new window if none exists."
   (interactive)
   (progn
      (evil-window-split)
-     (evil-window-up)))
+     (evil-window-up 1)))
 
 (defun +evil/window-move-down ()
   "Move window down or create new window if none exists."
   (interactive)
   (progn
      (evil-window-split)
-     (evil-window-down)))
+     (evil-window-down 1)))
 
-(global-set-key (kbd "C-c i") 'open-config-file)
 ;;(global-set-key (kbd "C-c i i") 'comis-sans) 
 
 ;; Genvejstaster til at skifte
@@ -349,7 +440,6 @@
     :states '(normal visual emacs)
     :keymaps 'override
     :prefix "SPC")
-    ;;:global-prefix "C-SPC")
   
   (my-leader-def
 
@@ -363,12 +453,18 @@
    "ff" 'find-file
    "fs" 'save-buffer
    "fr" 'open-recent-files
+   "fS" 'write-file
+   "fW" 'write-region
+   "fo" 'ff-find-other-file
+   "fO" 'ff-find-other-file-other-window 
 
    ;; buffers
    "b" '(:ignore t :which-key "buffers")
    "bb" 'switch-to-buffer
    "bk" 'kill-buffer
-   "bl" 'list-buffers
+   ;;"bl" 'list-buffers
+   "bl" 'next-buffer
+   "bh" 'previous-buffer
 
    ;; windows
    "w" '(:ignore t :which-key "windows")
@@ -435,29 +531,72 @@
    ;; "nl" 'org-roam-buffer-toggle
    ;; "nc" 'org-roam-capture 
 
+   ;; consult-line
+   "/" 'consult-line
+   "s" '(:ignore t :which-key "search")
+   "ss" 'consult-line
+   "sl" 'consult-line
+   ;; consult-rigprep
+   "sp" 'consult-ripgrep
+
+  "p" '(:ignore t :which-key "project")
+  "pp" 'projectile-switch-project
+  "pf" 'projectile-find-file
+  "pb" 'projectile-switch-to-buffer
+  "pd" 'projectile-find-dir
+  "pr" 'projectile-recentf
+  "pc" 'projectile-compile-project
+  "pR" 'projectile-run-project
+  "ps" 'consult-ripgrep
+  
+   ;; vterm
+   "v" '(:ignore t :which-key "vterm")
+   "vt" 'multi-vterm
+   "vk" 'multi-vterm-next
+   "vj" 'multi-vterm-prev
+   "vd" 'multi-vterm-dedicated-toggle
+   
    ;; quit
    "q" '(:ignore t :which-key "quit")
    "qq" 'save-buffers-kill-terminal
-   ))
-;; (use-package key-chord
-;;   :ensure t
-;;   :config 
-;;   (key-chord-mode 1)
-;;   (key-chord-define evil-insert-state-map "hh" 'evil-normal-state))
+   )
+  
+  ;; keybindings uden leader key
+  (general-define-key
+   :states 'emacs
+   "bb" '(previous-buffer :which-key "Buffer back")
+   "BB" '(next-buffer :which-key "Buffer forward"))
 
-(require 'org-modern)
-  (add-hook 'org-mode-hook #'org-modern-mode)
-  (add-hook 'org-mode-hook 'org-indent-mode)
+  (general-define-key
+   :states 'normal
+   "/" 'consult-line
+   "?" 'consult-line))
 
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((emacs-lisp . t)
-     (python . t)
-     (shell . t) ;; Tilføj andre sprog du ønsker at aktivere
-     ))
+  
+(use-package key-chord
+  :ensure t
+  :config
+  (setq key-chord-one-key-delay 0.2)
+  (key-chord-mode 1)
+  (key-chord-define evil-normal-state-map "bb" 'previous-buffer)
+  (key-chord-define evil-normal-state-map "BB" 'next-buffer)
+  (key-chord-define evil-motion-state-map "bb" 'previous-buffer)
+  (key-chord-define evil-motion-state-map "BB" 'next-buffer))
 
-(setq org-confirm-babel-evaluate nil)
-(setq org-babel-python-command "python3")
+(use-package org
+  :defer t
+  :mode ("\\.org\\'" . org-mode)
+  :commands (org-capture org-agenda))
+  
+  (use-package org-modern
+    :ensure t
+    :after org
+    :hook ((org-mode . org-modern-mode)
+	   (org-mode . org-indent-mode)))
+    
+    ;; (add-hook 'org-mode-hook #'org-modern-mode)
+    ;; (add-hook 'org-mode-hook 'org-indent-mode))
+
 (setq org-todo-keywords
         '((sequence
            "TODO(t)"
@@ -541,6 +680,16 @@
 ;;                      (string= org-capture-entry "ts")) ;; "t" er template key
 ;;             (org-sort-entries nil ?d))))
 
+(org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (python . t)
+     (shell . t) ;; Tilføj andre sprog du ønsker at aktivere
+     ))
+
+(setq org-confirm-babel-evaluate nil)
+(setq org-babel-python-command "python3")
+
 ;; Set the directory where your Org files are located
 (with-eval-after-load 'org
   (setq org-agenda-files (directory-files-recursively "~/Documents/org/agenda" "\\.org$")))
@@ -588,6 +737,9 @@
     :ensure t
     :init
     (setq org-roam-v2-ack t)
+    :commands (org-roam-node-find
+	       org-node-insert
+	       org-roam-buffer-toggle)
     :custom
     (org-roam-directory "~/Documents/org/org-roam/")  ; Din org-roam mappe
     (org-roam-completion-everywhere t)
@@ -598,6 +750,7 @@
     ;;        ("C-c n j" . org-roam-dailies-capture-today))
     :config
     (org-roam-db-autosync-mode))
+
 (use-package ts
   :ensure t)
 
@@ -613,7 +766,8 @@
 (use-package lsp-mode
   :ensure t
   :hook ((c-mode . lsp)
-	 (csharp-mode . lsp))
+	 (csharp-mode . lsp)
+	 (sh-mode . lsp-deferred))  
   :commands lsp)
 
 (use-package dap-mode
@@ -630,5 +784,118 @@
 
   ;; debug keybindings
   (define-key dap-mode-map (kbd "<f5>") 'dap-debug)
+  (define-key dap-mode-map (kbd "<f6>") 'dap-disconnect)
   (define-key dap-mode-map (kbd "<f9>") 'dap-breakpoint-toggle)
   (define-key dap-mode-map (kbd "<f10>") 'dap-next))
+  ;;(define-key dap-mode-map (kbd "D") 'dap-ui-delete-session))
+
+(use-package vterm
+  :ensure t)
+(use-package multi-vterm
+  :ensure t
+  :config
+  (setq multi-vterm-dedicated-height-percent 30)
+  ;;(global-set-key (kbd "C-v d") #'multi-vterm-dedicated-toggle)
+  )
+
+(use-package vterm-hotkey
+  :ensure t)
+
+(use-package transient
+:ensure t)
+
+(use-package magit
+  :ensure t
+  :bind ("C-x g" . magit-status))
+
+  ;; :custom
+  ;; (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+;; (use-package evil-magit
+;;   :ensure t
+;;   :after magit)
+
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :custom
+  (dired-listing-switches "-agho --group-directories-first")
+  :config
+  (general-define-key
+   :states 'normal
+   :keymaps 'dired-mode-map
+   
+   ;; Navigation (Vim-style)
+   "h" 'dired-up-directory
+   "l" 'dired-find-file
+   "j" 'dired-next-line
+   "k" 'dired-previous-line
+   "gg" 'beginning-of-buffer
+   "G" 'end-of-buffer
+   
+   ;; Actions
+   "o" 'dired-find-file-other-window
+   "v" 'dired-view-file
+   "q" 'quit-window
+   
+   ;; File operations
+   "d" 'dired-flag-file-deletion
+   "x" 'dired-do-flagged-delete
+   "D" 'dired-do-delete
+   
+   ;; Marking
+   "m" 'dired-mark
+   "u" 'dired-unmark
+   "U" 'dired-unmark-all-marks
+   
+   ;; Create
+   "+" 'dired-create-directory))
+  
+  ;; Leader bindings
+  ;;(my-leader-def
+    ;;:keymaps 'dired-mode-map
+   ;; "," 'dired-up-directory
+    ;;"." 'dired-find-file))
+
+(use-package consult
+        :ensure t
+        :defer t)
+;;      (global-set-key (kbd "C-x e") #'consult-buffer)
+
+(setq consult-ripgrep-args "rg --hidden --glob '!**/.dSYM/' --glob '!**/*#' --line-number --color=never --smart-case --no-heading --null")
+
+(use-package projectile
+  :ensure t
+  :demand t
+  :init
+  ;; C compile kommando 
+  (setq projectile-project-compilation-cmd "make")
+  ;; (setq projectile-globally-ignored-directories
+  ;;   '(".dSYM" "build" ".git"))
+
+  ;; (setq projectile-globally-ignored-files
+  ;;   '("#*" "~*" ))  ;; Ignorer filer som ender med #
+
+
+
+  :config
+  (projectile-mode +1)
+  ;; Ignore directories
+  ;; (add-to-list 'projectile-globally-ignored-directories "build")
+  ;; (add-to-list 'projectile-globally-ignored-directories "bin")
+  ;; (add-to-list 'projectile-globally-ignored-directories ".obj")
+  ;; (add-to-list 'projectile-globally-ignored-directories "**.dSYM")
+
+  ;; Ignore files
+  ;; (add-to-list 'projectile-globally-ignored-files "*.o")
+  ;; (add-to-list 'projectile-globally-ignored-files "*.a")
+  ;; (add-to-list 'projectile-globally-ignored-files "*.so")
+  ;; (add-to-list 'projectile-globally-ignored-files "*.*~")
+  ;; (add-to-list 'projectile-globally-ignored-files "*.*#")
+  ;; (add-to-list 'projectile-globally-ignored-file-suffixes "")
+  (setq projectile-globally-ignored-directories
+	(append projectile-globally-ignored-directories '("build" "bin" ".obj")))
+  (setq projectile-globally-ignored-files
+	(append projectile-globally-ignored-files '("*.0" "*.a")))
+  (setq projectile-globally-ignored-file-suffixes
+	(append projectile-globally-ignored-file-suffixes '("#" "~"))))

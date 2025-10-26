@@ -9,15 +9,78 @@
    '("/Users/andersskibsted/Documents/org/agenda/dayplanner.org"
      "/Users/andersskibsted/Documents/org/agenda/inbox.org"))
  '(package-selected-packages
-   '(company-org-block consult consult-yasnippet corfu dap-mode
-		       doom-modeline evil-collection evil-escape
-		       evil-nerd-commenter evil-surround
-		       fira-code-mode general ligature lsp-mode
-		       marginalia meow orderless org-modern
-		       org-roam-ui org-super-agenda org-superstar
-		       vertico which-key-posframe yasnippet
-		       yasnippet-classic-snippets yasnippet-snippets))
- '(safe-local-variable-values '((git-commit-major-mode . git-commit-elisp-text-mode))))
+   '(company company-org-block consult corfu evil marginalia orderless
+	     org-modern projectile vertico which-key-posframe))
+ '(safe-local-variable-values
+   '((eval with-eval-after-load 'dap-mode
+	   (dap-register-debug-template "LLDB::Run Fauxgrep MT"
+					(list :type "lldb-vscode" :cwd
+					      "${workspaceFolder}"
+					      :request "launch"
+					      :program
+					      "${workspaceFolder}/fauxgrep-mt"
+					      :name
+					      "LLDB::Run Fauxgrep MT"
+					      :args
+					      '("-n" "5" "for" "test"))))
+     (eval with-eval-after-load 'dap-mode
+	   (dap-register-debug-template "LLDB::Run Fauxgrep MT"
+					(list :type "lldb-vscode" :cwd
+					      "${workspaceFolder}"
+					      :request "launch"
+					      :program
+					      "${workspaceFolder}/fauxgrep-mt"
+					      :name
+					      "LLDB::Run Fauxgrep MT"
+					      :args
+					      '("-n " "5" "for" "test"))))
+     (eval with-eval-after-load 'dap-mode
+	   (dap-register-debug-template "LLDB::Run Fauxgrep MT"
+					(list :type "lldb-vscode" :cwd
+					      "${workspaceFolder}"
+					      :request "launch"
+					      :program
+					      "${workspaceFolder}/fauxgrep-mt"
+					      :name
+					      "LLDB::Run Fauxgrep MT"
+					      :args
+					      '("-n " "1" "for" "test"))))
+     (eval with-eval-after-load 'dap-mode
+	   (dap-register-debug-template "LLDB::Run Fauxgrep MT"
+					(list :type "lldb-vscode" :cwd
+					      "${workspaceFolder}"
+					      :request "launch"
+					      :program
+					      "${workspaceFolder}/fauxgrep-mt"
+					      :name
+					      "LLDB::Run Fauxgrep MT"
+					      :args
+					      (split-string
+					       (read-string
+						"Arguments: ")))))
+     (eval with-eval-after-load 'dap-mode
+	   (dap-register-debug-template "LLDB::Run Fauxgrep MT"
+					(list :type "lldb-vscode" :cwd
+					      "/users/andersskibsted/Desktop/datalogi/CompSys/Afleveringer/A2/"
+					      :request "launch"
+					      :program
+					      "/users/andersskibsted/Desktop/datalogi/CompSys/Afleveringer/A2/src/fauxgrep-mt"
+					      :name
+					      "LLDB::Run Fauxgrep MT"
+					      :args
+					      '("-n" "5" "for" "test"))))
+     (eval with-eval-after-load 'dap-mode
+	   (dap-register-debug-template "LLDB::Run Fauxgrep MT"
+					(list :type "lldb-vscode" :cwd
+					      "/users/andersskibsted/Desktop/datalogi/CompSys/Afleveringer/A2/"
+					      :request "launch"
+					      :program
+					      "/users/andersskibsted/Desktop/datalogi/CompSys/Afleveringer/A2/src/fauxgrep-mt"
+					      :name
+					      "LLDB::Run Fauxgrep MT"
+					      :argument
+					      ["-n" "5" "for" "test"])))
+     (git-commit-major-mode . git-commit-elisp-text-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
