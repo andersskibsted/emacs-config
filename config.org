@@ -8,6 +8,7 @@
   (menu-bar-mode 1)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
+  (setq use-short-answers t)
 #+end_src
 #+begin_src elisp 
   ;; (defvar default-font "JetBrains Mono")
@@ -20,6 +21,11 @@
     (find-file "~/.emacs.d/config.org"))
   
   (global-set-key (kbd "C-c i") 'open-config-file)
+#+end_src
+
+** loadpath
+#+begin_src elisp
+  ;; (add-to-list 'load-path (expand-file-name "~/.emacs.d/elpa/typst-preview/"))
 #+end_src
 * Package management setup
 #+begin_src elisp 
@@ -118,13 +124,90 @@
 
     (use-package evil-surround
       :ensure t
+      :after evil 
       :config
-      (evil-surround-mode 1))
+      (global-evil-surround-mode 1))
+
     (use-package evil-nerd-commenter
       :ensure t
+      :after evil
       :config
       (evilnc-default-hotkeys))
-    #+end_src
+
+
+    (use-package evil-cleverparens
+      :ensure t
+      :hook ((lisp-mode emacs-lisp-mode scheme-mode clojure-mode) . 
+    	 evil-cleverparens-mode))
+    (use-package evil-indent-plus
+      :ensure t
+      :config
+      (evil-indent-plus-default-bindings))
+
+  (use-package evil-goggles
+    :ensure t
+    :config
+    (evil-goggles-mode)
+    
+    ;; Juster duration (hvor længe highlight vises)
+    (setq evil-goggles-duration 0.100) ; 100ms (default er 200ms)
+    
+    ;; Enable alle highlights
+    (setq evil-goggles-enable-delete t)
+    (setq evil-goggles-enable-change t)
+    (setq evil-goggles-enable-yank t)
+    (setq evil-goggles-enable-paste t)
+    (setq evil-goggles-enable-indent t)
+    (setq evil-goggles-enable-join t)
+    (setq evil-goggles-enable-fill-and-move t)
+    (setq evil-goggles-enable-shift t))
+
+  (use-package evil-mc
+  :ensure t
+  :config
+  (global-evil-mc-mode 1))
+
+  (use-package evil-matchit
+    :ensure t
+    :config
+    (global-evil-matchit-mode 1))
+
+  (use-package evil-numbers
+    :ensure t) 
+
+  (use-package evil-args
+  :config
+  ;; bind evil-args text objects
+  (define-key evil-inner-text-objects-map "a" 'evil-inner-arg)
+  (define-key evil-outer-text-objects-map "a" 'evil-outer-arg)
+
+  ;; bind evil-forward/backward-args
+  (define-key evil-normal-state-map "L" 'evil-forward-arg)
+  (define-key evil-normal-state-map "H" 'evil-backward-arg)
+
+  ;; swapping arguments
+  (define-key evil-normal-state-map "gL" 'evil-forward-arg)
+  (define-key evil-normal-state-map "gH" 'evil-backward-arg))
+
+  (use-package evil-lion
+    :ensure t
+    :config
+    (evil-lion-mode))
+
+  (use-package evil-org
+  :ensure t
+  :after org
+  :hook (org-mode . (lambda () (evil-org-mode)))
+  :config
+
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
+  (use-package evil-visualstar
+  :config
+  (global-evil-visualstar-mode))
+
+  #+end_src
     
 ** meow
 #+begin_src elisp 
@@ -311,7 +394,7 @@
 #+begin_src elisp :lexical no
   (use-package rainbow-delimiters
     :ensure t
-    :hook (prog-mode . rainbow-delimiters-mode))
+    :hook ((prog-mode org-mode) . rainbow-delimiters-mode))
 #+end_src
 ** line-numbers
 #+begin_src elisp :lexical no
@@ -354,7 +437,7 @@
     :demand t
     :bind (:map vertico-map
   	      ;; Navigation
-  	      ("C-j" . vertico-next)
+                ("C-j" . vertico-next)
   	      ("C-k" . vertico-previous)
                 ("C-d" . vertico-scroll-down)
                 ("C-u" . vertico-scroll-up)
@@ -400,44 +483,57 @@
 #+end_src
 * Custom funktioner
 #+begin_src elisp
-      (defun reload-init-file ()
-        (interactive)
-        (load-file user-init-file))
+  (defun reload-init-file ()
+    (interactive)
+    (load-file user-init-file))
 
-      (defun open-init-file ()
-        "Åbn din init.el hurtigt."
-        (interactive)
-        (find-file user-init-file))
+  (defun open-init-file ()
+    "Åbn din init.el hurtigt."
+    (interactive)
+    (find-file user-init-file))
 
 
-      (defun comic-sans ()
-        (interactive)
-        (set-face-attribute 'default nil
-      		      :font "Comic Sans MS"))
+  (defun comic-sans ()
+    (interactive)
+    (set-face-attribute 'default nil
+        		      :font "Comic Sans MS"))
 
-      (defun enable-corfu ()
-        (interactive)
-        (global-corfu-mode 1)
-        (company-mode -1)
-        (message "Corfu enabled"))
+  (defun enable-corfu ()
+    (interactive)
+    (global-corfu-mode 1)
+    (company-mode -1)
+    (message "Corfu enabled"))
 
-      (defun enable-company ()
-        (interactive)
-        (global-corfu-mode -1)
-        (company-mode 1)
-        (message "Company enabled"))
+  (defun enable-company ()
+    (interactive)
+    (global-corfu-mode -1)
+    (company-mode 1)
+    (message "Company enabled"))
 
-      (defun show-load-path ()
-      "Vis load-path i en midlertidig buffer."
-      (interactive)
-      (with-output-to-temp-buffer "*Load Path*"
-        (princ (mapconcat #'identity load-path "\n"))))
+  (defun show-load-path ()
+    "Vis load-path i en midlertidig buffer."
+    (interactive)
+    (with-output-to-temp-buffer "*Load Path*"
+      (princ (mapconcat #'identity load-path "\n"))))
 
-    (global-set-key (kbd "C-c l") 'show-load-path)
+  (global-set-key (kbd "C-c l") 'show-load-path)
+
+  (defun my/consult-ripgrep-at-point ()
+    "Search for word at point with consult-ripgrep"
+    (interactive)
+    (consult-ripgrep nil (thing-at-point 'symbol)))
+
+  (defun my/dired-preview-toggle ()
+    "Toggle dired-preview-mode."
+    (interactive)
+    (if (bound-and-true-p dired-preview-mode)
+        (dired-preview-mode -1)
+      (dired-preview-mode 1)))
+
 
   ;; Den er ret langsom, men kan evt. være en start.
-    
-    (defun show-all-registers-in-buffer ()
+
+  (defun show-all-registers-in-buffer ()
     "Vis alle Emacs registra i en ny buffer."
     (interactive)
     (let ((buf (get-buffer-create "*Registers*")))
@@ -512,136 +608,251 @@
     
     (my-leader-def
 
-     ;; Shortcuts
-     "," 'switch-to-buffer
-     "rr" 'reload-init-file
-     "RET" 'bookmark-jump
-     
-     ;; files
-     "f" '(:ignore t :which-key "files")
-     "ff" 'find-file
-     "fs" 'save-buffer
-     "fr" 'open-recent-files
-     "fS" 'write-file
-     "fW" 'write-region
-     "fo" 'ff-find-other-file
-     "fO" 'ff-find-other-file-other-window 
+      ;; Shortcuts
+      "," 'switch-to-buffer
+      "rr" 'reload-init-file
+      "RET" 'bookmark-jump
+      
 
-     ;; buffers
-     "b" '(:ignore t :which-key "buffers")
-     "bb" 'switch-to-buffer
-     "bk" 'kill-buffer
-     ;;"bl" 'list-buffers
-     "bl" 'next-buffer
-     "bh" 'previous-buffer
+      ;; buffers
+      "b" '(:ignore t :which-key "buffers")
+      "bb" 'switch-to-buffer
+      "bk" 'kill-buffer
+      ;;"bl" 'list-buffers
+      "bl" 'next-buffer
+      "bh" 'previous-buffer
 
-     ;; windows
-     "w" '(:ignore t :which-key "windows")
-     "wh" 'evil-window-left
-     "wH" '+evil/window-move-left
-     "wk" 'evil-window-up
-     "wK" '+evil/window-move-up
-     "wj" 'evil-window-down
-     "wJ" '+evil/window-move-down
-     "wl" 'evil-window-right
-     "wL" '+evil/window-move-right
-     "wd" 'delete-window 
-     "wn" 'evil-window-new
-     "wv" 'split-window-right
-     "ws" 'split-window-below
 
-     ;; frames
-     "a" '(:ignore t :which-key "frames")
-     "an" 'make-frame
-     "ac" 'clone-frame
-     "aC" '((lambda () (interactive) (set-frame-font "Comic Sans MS")) :which-key "Comic Sans Frame") 
-  		 
-     ;; consult
-     "c" '(:ignore t :which-key "consult")
-     "cy" 'consult-yank-pop
-     "cb" 'consult-buffer
-     
-     ;;;;
-     ;; org
-     ;;;;
-     "mc" 'org-capture 
+      ;; frames
+      ;; "a" '(:ignore t :which-key "frames")
+      ;; embark
+      "a" '(embark-act :which-key "embark act")
+      "A" '(embark-dwim :which-key "embark dwim")
+      
+      ;; consult
+      "c" '(:ignore t :which-key "consult")
+      "cy" 'consult-yank-pop
+      "cb" 'consult-buffer
 
-     ;; org-agenda
-     "m" '(:ignore t :which-key "org-agenda")
-     "mt" 'org-todo
-     "ma" 'org-agenda
+      ;; dired
+      "d" '(:ignore t :which-key "dired")
+      "dp" #'my/dired-preview-toggle 
 
-     ;; org-roam
-     ;; Find/Create
-     "nr" '(:ignore t :which-key "nodes")
-     "nrf" '(org-roam-node-find :which-key "find node")
-     "nri" '(org-roam-node-insert :which-key "insert node")
+      ;; files
+      "f" '(:ignore t :which-key "files")
+      "ff" 'find-file
+      "fs" 'save-buffer
+      "fr" 'open-recent-files
+      "fS" 'write-file
+      "fW" 'write-region
+      "fo" 'ff-find-other-file
+      "fO" 'ff-find-other-file-other-window 
+      
+      ;; help
+      "h" '(:ignore t :which-key "help")
+      "hk" 'describe-key
+      "hK" 'describe-keymap
+      "hm" 'describe-mode
+      "hb" 'describe-bindings
 
-     "nc" '(org-roam-capture :which-key "capture")
-     
-     ;; Buffer/Graph
-     "nl" '(org-roam-buffer-toggle :which-key "toggle buffer")
-     "ng" '(org-roam-graph :which-key "graph")
-     "nu" '(org-roam-ui-open :which-key "ui")
+      ;; lsp
+      "ll" '(:ignore t :which-key "lsp")
+      "la" 'lsp-execute-code-action        ;; code actions
+      "lr" 'lsp-rename                      ;; rename symbol
+      "lf" 'lsp-format-buffer               ;; format
+      "lF" 'lsp-format-region               ;; format region
+      "ld" 'lsp-find-definition             ;; go to definition
+      "lD" 'lsp-find-declaration            ;; go to declaration
+      "li" 'lsp-find-implementation         ;; go to implementation
+      "lt" 'lsp-find-type-definition        ;; go to type def
+      "lR" 'lsp-find-references             ;; find references
+      "ls" 'lsp-describe-thing-at-point     ;; show docs
+      "lh" 'lsp-ui-doc-show                 ;; show hover
+      "ll" 'lsp-workspace-show-log          ;; show log
+      "lq" 'lsp-workspace-restart         ;; restart 		   
+      "lK" 'lsp-ui-doc-show           ;; Hover docs
+      "lgd" 'lsp-ui-peek-find-definitions
+      "lgp" 'lsp-ui-peek-find-references
 
-     ;; Dailies
-     "nd" '(:ignore t :which-key "dailies")
-     "ndt" '(org-roam-dailies-goto-today :which-key "today")
-     "ndd" '(org-roam-dailies-goto-date :which-key "date")
-     "ndy" '(org-roam-dailies-goto-yesterday :which-key "yesterday")
-     "ndm" '(org-roam-dailies-goto-tomorrow :which-key "tomorrow")
-     "ndc" '(org-roam-dailies-capture-today :which-key "capture today")
+       ;;;;
+  ;; org
+       ;;;;
+  "mc" 'org-capture 
 
-     ;; Sync
-     "ns" '(org-roam-db-sync :which-key "sync db")
-     ;; "n" '(:ignore t :which-key "org-roam")
-     ;; "ni" 'org-roam-node-insert
-     ;; "nf" 'org-roam-node-find
-     ;; "nl" 'org-roam-buffer-toggle
-     ;; "nc" 'org-roam-capture 
+  ;; org-agenda
+  "m" '(:ignore t :which-key "org-agenda")
+  "mt" 'org-todo
+  "ma" 'org-agenda
 
-     ;; consult-line
-     "/" 'consult-line
-     "s" '(:ignore t :which-key "search")
-     "ss" 'consult-line
-     "sl" 'consult-line
-     ;; consult-rigprep
-     "sp" 'consult-ripgrep
+  ;; org-roam
+  ;; Find/Create
+  "nr" '(:ignore t :which-key "nodes")
+  "nrf" '(org-roam-node-find :which-key "find node")
+  "nri" '(org-roam-node-insert :which-key "insert node")
 
-    "p" '(:ignore t :which-key "project")
-    "pp" 'projectile-switch-project
-    "pf" 'projectile-find-file
-    "pb" 'projectile-switch-to-buffer
-    "pd" 'projectile-find-dir
-    "pr" 'projectile-recentf
-    "pc" 'projectile-compile-project
-    "pR" 'projectile-run-project
-    "ps" 'consult-ripgrep
-    
-     ;; vterm
-     "v" '(:ignore t :which-key "vterm")
-     "vt" 'multi-vterm
-     "vk" 'multi-vterm-next
-     "vj" 'multi-vterm-prev
-     "vd" 'multi-vterm-dedicated-toggle
-     
-     ;; quit
-     "q" '(:ignore t :which-key "quit")
-     "qq" 'save-buffers-kill-terminal
-     )
-    
-    ;; keybindings uden leader key
-    (general-define-key
-     :states 'emacs
-     "bb" '(previous-buffer :which-key "Buffer back")
-     "BB" '(next-buffer :which-key "Buffer forward"))
+  "nc" '(org-roam-capture :which-key "capture")
 
-    (general-define-key
-     :states 'normal
-     "/" 'consult-line
-     "?" 'consult-line))
+  ;; Buffer/Graph
+  "nl" '(org-roam-buffer-toggle :which-key "toggle buffer")
+  "ng" '(org-roam-graph :which-key "graph")
+  "nu" '(org-roam-ui-open :which-key "ui")
 
-    
+  ;; Dailies
+  "nd" '(:ignore t :which-key "dailies")
+  "ndt" '(org-roam-dailies-goto-today :which-key "today")
+  "ndd" '(org-roam-dailies-goto-date :which-key "date")
+  "ndy" '(org-roam-dailies-goto-yesterday :which-key "yesterday")
+  "ndm" '(org-roam-dailies-goto-tomorrow :which-key "tomorrow")
+  "ndc" '(org-roam-dailies-capture-today :which-key "capture today")
+
+  ;; Sync
+  "ns" '(org-roam-db-sync :which-key "sync db")
+  ;; "n" '(:ignore t :which-key "org-roam")
+  ;; "ni" 'org-roam-node-insert
+  ;; "nf" 'org-roam-node-find
+  ;; "nl" 'org-roam-buffer-toggle
+  ;; "nc" 'org-roam-capture 
+
+  ;; projectile
+  "p" '(:ignore t :which-key "project")
+  "pp" 'projectile-switch-project
+  "pf" 'projectile-find-file
+  "pb" 'projectile-switch-to-buffer
+  "pd" 'projectile-find-dir
+  "pr" 'projectile-recentf
+  "pc" 'projectile-compile-project
+  "pR" 'projectile-run-project
+  "ps" 'consult-ripgrep
+
+  ;; olivetti
+  "t" '(:ignore t :which-key "olivetti")
+  "tf" '(my/distraction-free :which-key "focus mode")
+
+  ;; consult-line
+  "/" 'consult-line
+  "s" '(:ignore t :which-key "search")
+  "ss" 'consult-line
+  "sl" 'consult-line
+  ;; consult-rigprep
+  "sp" 'consult-ripgrep
+  "sw" '(my/consult-ripgrep-at-point :which-key "consult-ripgrep on word under cursor")
+
+  ;; vterm
+  "v" '(:ignore t :which-key "vterm")
+  "vt" 'multi-vterm
+  "vk" 'multi-vterm-next
+  "vj" 'multi-vterm-prev
+  "vd" 'multi-vterm-dedicated-toggle
+
+  ;; windows
+  "w" '(:ignore t :which-key "windows")
+  "wh" 'evil-window-left
+  "wH" '+evil/window-move-left
+  "wk" 'evil-window-up
+  "wK" '+evil/window-move-up
+  "wj" 'evil-window-down
+  "wJ" '+evil/window-move-down
+  "wl" 'evil-window-right
+  "wL" '+evil/window-move-right
+  "wd" 'delete-window 
+  "wn" 'evil-window-new
+  "wv" 'split-window-right
+  "ws" 'split-window-below
+  ;; frames
+
+  "wN" 'make-frame
+  "wC" 'clone-frame
+  "wcs" '((lambda () (interactive) (set-frame-font "Comic Sans MS")) :which-key "Comic Sans Frame") 
+
+  ;; quit
+  "q" '(:ignore t :which-key "quit")
+  "qq" 'save-buffers-kill-terminal
+
+  ;;evil-numbers
+  "+" 'evil-numbers/inc-at-pt
+  "-" 'evil-numbers/dec-at-pt)
+
+
+
+      ;;;;;;
+  ;; keybindings uden leader key
+      ;;;;;;
+  (general-define-key
+   :states 'emacs
+   "bb" '(previous-buffer :which-key "Buffer back")
+   "BB" '(next-buffer :which-key "Buffer forward"))
+
+  (general-define-key
+   :states 'visual
+   "*" 'evil-visualstar/begin-search-forward
+   "#" 'evil-visualstar/begin-search-backward)
+
+
+  (general-define-key
+   :states 'normal
+   "/" 'consult-line
+   "?" 'consult-line
+   "C->" 'lispyville->
+   "C-<" 'lispyville-<)
+
+  ;; (general-define-key
+  ;;  :keymap 'dired-mode-map
+
+  (general-create-definer my-evil-mc-def
+    :states '(normal visual)
+    :prefix "gr"
+    :prefix-name "evil-mc")
+
+  (my-evil-mc-def
+    "" '(:ignore t :which-key "evil-mc")
+    "m" '(evil-mc-make-and-goto-next-match :wk "match →")
+    "M" '(evil-mc-make-and-goto-prev-match :wk "match ←")
+    "j" '(evil-mc-make-cursor-move-next-line :wk "↓")
+    "k" '(evil-mc-make-cursor-move-prev-line :wk "↑")
+    "J" '(evil-mc-make-cursor-move-last-line :wk "last ↓")
+    "K" '(evil-mc-make-cursor-move-first-line :wk "first ↑")
+    "u" '(evil-mc-undo-last-added-cursor :wk "undo")
+    "q" '(evil-mc-undo-all-cursors :wk "quit")
+    "p" '(evil-mc-pause-cursors :wk "pause")
+    "r" '(evil-mc-resume-cursors :wk "resume"))
+
+  ;; Visual mode extras
+  (general-define-key
+   :states 'visual
+   :prefix "gr"
+   "A" '(evil-mc-make-cursor-in-visual-selection-beg :wk "each line")
+   "I" '(evil-mc-make-cursor-in-visual-selection-end :wk "line start")
+   "a" '(evil-mc-make-all-cursors :wk "all matches")))
+
+  ;; ;; Definer 'gz' prefix for evil-mc
+  ;; (general-define-key
+  ;;  :states '(normal visual)
+  ;;  "gz" '(:ignore t :which-key "evil-mc"))
+
+  ;; ;; Evil-mc bindings under 'gz'
+  ;; (general-define-key
+  ;;  :states '(normal visual)
+  ;;  :prefix "gz"
+  ;;  "m" '(evil-mc-make-and-goto-next-match :which-key "match forward")
+  ;;  "M" '(evil-mc-make-and-goto-prev-match :which-key "match backward")
+  ;;  "j" '(evil-mc-make-cursor-move-next-line :which-key "cursor down")
+  ;;  "k" '(evil-mc-make-cursor-move-prev-line :which-key "cursor up")
+  ;;  "J" '(evil-mc-make-cursor-move-last-line :which-key "cursor to last line")
+  ;;  "K" '(evil-mc-make-cursor-move-first-line :which-key "cursor to first line")
+  ;;  "u" '(evil-mc-undo-last-added-cursor :which-key "undo last cursor")
+  ;;  "q" '(evil-mc-undo-all-cursors :which-key "quit all cursors")
+  ;;  "p" '(evil-mc-pause-cursors :which-key "pause cursors")
+  ;;  "r" '(evil-mc-resume-cursors :which-key "resume cursors"))
+
+  ;; ;; Visual mode specifikke bindings
+  ;; (general-define-key
+  ;;  :states 'visual
+  ;;  :prefix "gz"
+  ;;  "A" '(evil-mc-make-cursor-in-visual-selection-beg :which-key "cursor each line")
+  ;;  "I" '(evil-mc-make-cursor-in-visual-selection-end :which-key "cursor line start")
+  ;;  "a" '(evil-mc-make-all-cursors :which-key "all matches")))
+
+
   (use-package key-chord
     :ensure t
     :config
@@ -652,7 +863,11 @@
     (key-chord-define evil-motion-state-map "bb" 'previous-buffer)
     (key-chord-define evil-motion-state-map "BB" 'next-buffer))
 
-#+end_src
+    #+end_src
+
+    #+RESULTS:
+    : t
+
 * org
 ** org og org-modern
 #+begin_src elisp 
@@ -857,9 +1072,36 @@
   (use-package lsp-mode
     :ensure t
     :hook ((c-mode . lsp)
-  	 (csharp-mode . lsp)
-  	 (sh-mode . lsp-deferred))  
-    :commands lsp)
+           (c-ts-mode . lsp)
+           (csharp-mode . lsp)
+           (sh-mode . lsp-deferred)
+           (typst-ts-mode . lsp-deferred))
+    
+    :commands (lsp lsp-deferred)
+    :custom
+    (lsp-typst-server-path "tinymist")
+    (lsp-enable-symbol-highlighting t)
+    (lsp-headerline-breadcrumb-enable t)
+    :config
+    (add-to-list 'lsp-language-id-configuration '(typst-ts-mode . "typst"))
+    (lsp-register-client
+     (make-lsp-client
+      :new-connection (lsp-stdio-connection '("tinymist"))
+      :activation-fn (lsp-activate-on "typst")
+      :server-id 'tinymist
+      :major-modes '(typst-ts-mode))))
+
+  (use-package lsp-ui
+    :ensure t
+    :after lsp-mode
+    :custom
+    (lsp-ui-doc-enable t)
+    (lsp-ui-doc-position 'top)
+    (lsp-ui-sideline-enable t)
+    (lsp-ui-sideline-show-hover t)
+    (lsp-ui-sideline-show-diagnostics t)
+    (lsp-ui-sideline-show-code-actions t)
+    :hook (lsp-mode . lsp-ui-mode))
 
 #+end_src
 
@@ -920,6 +1162,7 @@
   ;;   :after magit)
 #+end_src
 * dired
+** dired
 #+begin_src elisp 
   (use-package dired
     :ensure nil
@@ -927,6 +1170,7 @@
     :custom
     (dired-listing-switches "-agho --group-directories-first")
     :config
+    (setq dired-create-destination-dirs 'ask)
     (general-define-key
      :states 'normal
      :keymaps 'dired-mode-map
@@ -963,6 +1207,14 @@
      ;; "," 'dired-up-directory
       ;;"." 'dired-find-file))
 #+end_src
+** dired-preview
+#+begin_src elisp
+  (use-package dired-preview
+    :ensure t)
+    ;;:hook (dired-mode . dired-preview-mode))
+#+end_src
+
+
 * consult
 ** consult
 #+begin_src elisp
@@ -973,7 +1225,13 @@
 #+end_src
 ** consult-ripgrep
 #+begin_src elisp
-  (setq consult-ripgrep-args "rg --hidden --glob '!**/.dSYM/' --glob '!**/*#' --line-number --color=never --smart-case --no-heading --null")
+  ;; Customize ripgrep args
+  (setq consult-ripgrep-args
+        "rg --null --line-buffered --color=never --max-columns=1000 \
+         --path-separator / --smart-case --no-heading \
+         --with-filename --line-number --search-zip \
+         --hidden")  ;; tilføj --hidden for at søge i skjulte filer
+    ;;(setq consult-ripgrep-args "rg --hidden --glob '!**/.dSYM/' --glob '!**/*#' --line-number --color=never --smart-case --no-heading --null")
 
 #+end_src
 * projectile
@@ -1015,3 +1273,139 @@
   	(append projectile-globally-ignored-file-suffixes '("#" "~"))))
 
 #+end_src
+
+
+* olivetti
+#+begin_src elisp 
+  (use-package olivetti
+    :ensure t
+    :config
+    (setq olivetti-body-width 100)
+    
+    ;; Custom distraction-free function
+    (defun my/distraction-free ()
+      "Toggle distraction-free writing mode."
+      (interactive)
+      (if olivetti-mode
+          (progn
+            (olivetti-mode -1)
+            (setq mode-line-format (default-value 'mode-line-format))
+            (when (bound-and-p 'display-line-numbers)
+              (setq display-line-numbers t)))
+        (progn
+          (olivetti-mode 1)
+          (setq-local mode-line-format nil)
+          (when (bound-and-p 'display-line-numbers)
+            (setq display-line-numbers nil))))))
+#+end_src
+* lispyville
+#+begin_src elisp
+      ;; Disable cleverparens når lispyville overtager
+    (use-package lispyville
+      :ensure t
+      :hook ((emacs-lisp-mode lisp-mode) . lispyville-mode)
+      :config
+      (lispyville-set-key-theme
+       '(operators
+         c-w
+         slurp/barf-cp    ; Genbrug dine > og < muscle memory!
+         prettify
+         text-objects
+         atom-movement
+         additional))
+      (add-hook 'org-src-mode-hook
+          (lambda ()
+            (when (derived-mode-p 'lisp-mode 
+                                   'emacs-lisp-mode 
+                                   'clojure-mode 
+                                   'scheme-mode)
+              (lispyville-mode 1)))))
+    
+      ;; (use-package lispyville
+      ;;   :ensure t
+      ;;   :hook ((emacs-lisp-mode lisp-mode) . lispyville-mode)
+      ;;   :config
+      ;;   ;; Start med kun navigation - cleverparens håndterer safety
+      ;;   (lispyville-set-key-theme
+      ;;    '(operators      ; H/J/K/L
+      ;;      prettify)))    ; auto-indent
+#+end_src
+
+* treesit
+#+begin_src elisp
+  (use-package treesit
+  :init
+  ;; Emacs 29+ har tree-sitter built-in
+  (setq treesit-language-source-alist
+      '((c "https://github.com/tree-sitter/tree-sitter-c" "v0.20.6")
+        (cpp "https://github.com/tree-sitter/tree-sitter-cpp" "v0.20.3")
+        (python "https://github.com/tree-sitter/tree-sitter-python" "v0.20.4")
+        (bash "https://github.com/tree-sitter/tree-sitter-bash" "v0.20.4")
+        (rust "https://github.com/tree-sitter/tree-sitter-rust" "v0.20.4")
+        (typst "https://github.com/Typst/typst/tree/main/emacs/typst-ts-mode")
+        (elisp "https://github.com/Wilfred/tree-sitter-elisp")))
+
+
+  :config
+  ;; Install all defined grammars
+  ;; (defun my/treesit-install-all-grammars ()
+  ;;   "Install all tree-sitter grammars defined in `treesit-language-source-alist'."
+  ;;   (interactive)
+  ;;   (dolist (lang treesit-language-source-alist)
+  ;;     (let ((lang-name (car lang)))
+  ;;       (unless (treesit-language-available-p lang-name)
+  ;;         (message "Installing %s grammar..." lang-name)
+  ;;         (treesit-install-language-grammar lang-name)))))
+
+  ;; Remap major modes to tree-sitter versions
+  (setq major-mode-remap-alist
+        '((c-mode . c-ts-mode)
+          (c++-mode . c++-ts-mode)
+          (python-mode . python-ts-mode)
+          (bash-mode . bash-ts-mode)
+          (css-mode . css-ts-mode)
+          (javascript-mode . js-ts-mode)
+          (json-mode . json-ts-mode)
+          (rust-mode . rust-ts-mode))))
+
+  ;; (use-package treesit-auto
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq treesit-auto-install t)
+  ;;   (global-treesit-auto-mode))
+  ;; (add-to-list 'treesit-language-source-alist
+  ;;              '((typst "https://github.com/uben0/tree-sitter-typst")
+  ;;                (c "https://github.com/tree-sitter/tree-sitter-c")
+  ;;                (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+  ;;                (python "https://github.com/tree-sitter/tree-sitter-python")
+  ;;                (rust "https://github.com/tree-sitter/tree-sitter-rust")
+  ;;                (typst "https://github.com/Typst/typst/tree/main/emacs/typst-ts-mode"))))
+
+#+end_src
+* websocket
+#+begin_src elisp
+  (use-package websocket
+    :ensure t)
+#+end_src
+* typst
+#+begin_src elisp 
+  (use-package typst-ts-mode
+    :ensure t ;;(:type git :host sourcehut :repo "meow_king/typst-ts-mode")
+    :mode ("\\.typ\\'" . typst-ts-mode)
+    :hook ((typst-ts-mode . lsp-deferred)))
+
+  (use-package typst-preview
+    :load-path "~/.emacs.d/elpa/typst-preview/" ;; if installed manually
+    :after typst-ts-mode
+    :init
+    (setq typst-preview-autostart t) ; start typst preview automatically when typst-preview-mode is activated
+    (setq typst-preview-open-browser-automatically t) ; open browser automatically when typst-preview-start is run
+    :custom
+    (typst-preview-browser "default") 	; this is the default option
+    (typst-preview-invert-colors "auto")	; invert colors depending on system theme
+    (typst-preview-executable "tinymist preview")) ; choose between tinymist and typst-preview (deprecated!)
+
+#+end_src
+
+
+

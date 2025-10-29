@@ -9,10 +9,31 @@
    '("/Users/andersskibsted/Documents/org/agenda/dayplanner.org"
      "/Users/andersskibsted/Documents/org/agenda/inbox.org"))
  '(package-selected-packages
-   '(company company-org-block consult corfu evil marginalia orderless
-	     org-modern projectile vertico which-key-posframe))
+   '(company-org-block consult-yasnippet corfu dap-mode dired-preview
+		       doom-modeline embark-consult evil-args
+		       evil-cleverparens evil-collection evil-escape
+		       evil-goggles evil-indent-plus evil-lion
+		       evil-matchit evil-mc evil-nerd-commenter
+		       evil-numbers evil-org evil-surround
+		       evil-visualstar fira-code-mode general
+		       key-chord ligature lispyville lsp-ui magit
+		       marginalia meow multi-vterm olivetti orderless
+		       org-modern org-roam-ui org-super-agenda
+		       org-superstar projectile rainbow-delimiters
+		       treesit-auto typst-ts-mode vertico vterm-hotkey
+		       which-key-posframe yasnippet-classic-snippets
+		       yasnippet-snippets))
  '(safe-local-variable-values
    '((eval with-eval-after-load 'dap-mode
+	   (dap-register-debug-template "LLDB::Run Peer"
+					(list :type "lldb-vscode" :cwd
+					      "${workspaceFolder}"
+					      :request "launch"
+					      :program
+					      "${workspaceFolder}/peer.c"
+					      :name
+					      "LLDB::Run Fauxgrep MT")))
+     (eval with-eval-after-load 'dap-mode
 	   (dap-register-debug-template "LLDB::Run Fauxgrep MT"
 					(list :type "lldb-vscode" :cwd
 					      "${workspaceFolder}"
